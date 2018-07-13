@@ -5,11 +5,16 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Http\UploadedFile;
-use Storage;
+use Illuminate\Support\Facades\Storage;
 
 class Post extends Model
 {
     use Sluggable;
+
+    const IS_DRAFT = 0;
+    const IS_PUBLIC = 1;
+    const IS_FEATURED = 1;
+    const IS_STANDARD = 0;
 
     protected $fillable = [
         'titile',
@@ -78,10 +83,19 @@ class Post extends Model
         if ($image == null) return;
 
         Storage::delete('uploads/' . $this->image);
-        $filename = str_random(10).'.'.$image->extension();
+        $filename = str_random(10) . '.' . $image->extension();
         $image->saveAs('uploads', $filename);
         $this->image = $filename;
         $this->save();
+    }
+
+    public function getImage()
+    {
+        if ($this->image == null) {
+            return '/img/no-image.png';
+        }
+
+        return '/uploads/' . $this->image;
     }
 
     public function setCategory($id)
@@ -101,13 +115,13 @@ class Post extends Model
 
     public function setDraft()
     {
-        $this->status = 0;
+        $this->status = Post::IS_DRAFT;
         $this->save();
     }
 
     public function setPublic()
     {
-        $this->status = 1;
+        $this->status = Post::IS_PUBLIC;
         $this->save();
     }
 
@@ -122,13 +136,13 @@ class Post extends Model
 
     public function setFeatured()
     {
-        $this->is_featured = 1;
+        $this->is_featured = Post::IS_FEATURED;
         $this->save();
     }
 
     public function setStandard()
     {
-        $this->is_featured = 0;
+        $this->is_featured = Post::IS_STANDARD;
         $this->save();
     }
 
